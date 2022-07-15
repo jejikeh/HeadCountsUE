@@ -3,7 +3,6 @@
 
 #include "HeadCounts/Spawners/Spawner.h"
 #include "HeadCounts/Spawners/ISpawnable.h"
-#include "Log.h"
 
 // Sets default values
 ASpawner::ASpawner()
@@ -17,18 +16,43 @@ void ASpawner::Spawn()
 {
 	for(int32 Idx = 0; Idx < spawnableObjects.Num(); Idx++)
 	{
-		AActor* spawnedActor = Cast<AActor>(spawnableObjects[Idx]);
-		if(spawnedActor->Implements<UISpawnable>()){
-    		IISpawnable::Execute_Spawn(spawnedActor);
+		FVector SpawnLocation = GetActorLocation();
+		FRotator SpawnRotation = GetActorRotation();
+		// Spawn actor at the same point as Spawner Actor
+		AActor* spawnedActor = GetWorld()->SpawnActor<AActor>(spawnableObjects[Idx],SpawnLocation,SpawnRotation);
+		// If object implement ISpawnable interface, then Spawner Actor keep them in array 
+		if(spawnedActor->Implements<UISpawnable>())
+		{
+			_spawnedSpawnableActors.Add(spawnedActor);
+			IISpawnable::Execute_Spawn(spawnedActor);
 		}
-		
 	}
 }
 
 
-void ASpawner::DeSpawn()
+// For all ISpawnable object stop track them
+void ASpawner::StopTracking()
 {
+	// Clear array
+	_spawnedSpawnableActors.Empty();
 }
+
+void ASpawner::DeSpawn(){
+	for(int32 Idx = 0; Idx < _spawnedSpawnableActors.Num(); Idx++)
+	{
+		if(_spawnedSpawnableActors[Idx]->Implements<UISpawnable>())
+		{
+			IISpawnable::Execute_DeSpawn(_spawnedSpawnableActors[Idx]);
+		}
+	}
+}
+
+void ASpawner::DeSpawnAndStopTracking()
+{
+	DeSpawn();
+	StopTracking();
+}
+
 
 // Called when the game starts or when spawned
 void ASpawner::BeginPlay()

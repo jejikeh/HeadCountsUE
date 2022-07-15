@@ -12,7 +12,7 @@ class HEADCOUNTSCORE_API ASpawner : public AActor
 {
 private:
 	GENERATED_BODY()
-	TArray<ASpawnable> _spawnedObjects;
+	TArray<AActor*> _spawnedSpawnableActors;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -22,14 +22,20 @@ public:
 	void Spawn();
 
 	UFUNCTION(BlueprintCallable, Category="Spawner")
+	void StopTracking();
+
+	UFUNCTION(BlueprintCallable, Category="Spawner")
 	void DeSpawn();
+
+	UFUNCTION(BlueprintCallable, Category="Spawner")
+	void DeSpawnAndStopTracking();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Spawner")
-	TArray<UObject*> spawnableObjects;
+	TArray<TSubclassOf<AActor>> spawnableObjects;
 
 public:	
 	// Called every frame
